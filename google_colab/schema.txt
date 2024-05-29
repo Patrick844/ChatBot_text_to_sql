@@ -1,0 +1,632 @@
+-- Remember that xref_cluster_object table is the link between cluster and object.
+-- Remember that xref_componentType_spare table is the link between component_type and spare.
+-- Remember that xref_component_jobPreventive table is the link between component and job_preventive.
+-- Remember that xref_component_jobPreventivePolicy table is the link between component and job_preventive_policy.
+-- Remember that xref_component_view table is the link between component and view.
+-- Remember that xref_jobPreventivePolicy_object table is the link between job_preventive_policy and object.
+-- Remember that xref_jobPreventivePolicy_space table is the link between space and job_preventive_policy.
+-- Remember that xref_jobPreventive_object table is the link between object and job_preventive.
+-- Remember that xref_jobPreventive_space table is the link between job_preventive and space.
+-- Remember that xref_jobReactive_spare table is the link between job_reactive and spare.
+-- Remember that xref_modelEquipment_user table is the link between model_equipment and user.
+-- Remember that xref_modelFacility_user table is the link between model_facility and user.
+-- Remember that xref_objectType_spare table is the link between object_type and spare.
+-- Remember that xref_resource_jobReactive table is the link between resource and job_reactive.
+-- Remember that xref_sensor_sensorType table is the link between sensor and sensor_type.
+-- Remember that xref_space_zone table is the link between zone and space.
+
+
+
+
+CREATE TYPE modules_equipment AS ENUM (
+    'parts_management',
+    'inventory_management',
+    'maintenance_management'
+);
+
+
+CREATE TYPE modules_facility AS ENUM (
+    'equipment_management',
+    'space_management',
+    'inventory_management',
+    'maintenance_management',
+    'cleaning_management',
+    'iot_management'
+);
+
+CREATE TABLE address (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each address
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the address was created
+    street TEXT, -- Street name
+    town TEXT, -- Town or city
+    state_region TEXT, -- State or region
+    country TEXT, -- Country
+    postal_box TEXT, -- Postal box number
+    postal_code TEXT, -- Postal code
+    latitude DOUBLE PRECISION NOT NULL, -- Latitude coordinate
+    longitude DOUBLE PRECISION NOT NULL -- Longitude coordinate
+);
+
+CREATE TABLE cluster (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each cluster
+    name TEXT NOT NULL, -- Name of the cluster
+    model_equipment_id INTEGER, -- ID of the model equipment associated with the cluster
+    is_default BOOLEAN DEFAULT FALSE NOT NULL, -- Flag indicating if it's the default cluster
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL -- Timestamp when the cluster was created
+);
+
+CREATE TABLE company (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each company
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the company was created
+    name TEXT NOT NULL, -- Company name
+    email TEXT, -- Company email address
+    phone TEXT, -- Company phone number
+    address_id UUID, -- ID of the associated address
+    organisation_id UUID NOT NULL -- ID of the associated organisation
+);
+
+CREATE TABLE component (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each component
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the component was created
+    name TEXT NOT NULL, -- Component name
+    description TEXT, -- Component description
+    serial_number TEXT, -- Component serial number
+    installation_date TIMESTAMP WITH TIME ZONE, -- Date of component installation
+    warranty_start_date TIMESTAMP WITH TIME ZONE, -- Start date of component warranty
+    tag_number TEXT, -- Component tag number
+    barcode TEXT, -- Component barcode
+    asset_identifier TEXT, -- Component asset identifier
+    supplier_id UUID, -- ID of the supplier
+    supplier_contact_id UUID, -- ID of the supplier contact
+    dbid NUMERIC NOT NULL, -- Database ID
+    warranty_end_date TIMESTAMP WITH TIME ZONE, -- End date of component warranty
+    component_type_id UUID, -- ID of the component type
+    custom_properties JSONB, -- Custom properties stored as JSON
+    raw_name TEXT, -- Raw name of the component
+    space_id UUID, -- ID of the associated space
+    model_equipment_id UUID -- ID of the associated model equipment
+);
+
+CREATE TABLE component_family (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the component family was created
+    system_id INTEGER PRIMARY KEY, -- Unique identifier for each system
+    custom_data JSONB, -- Custom data stored as JSON
+    omniclass_type_id INTEGER PRIMARY KEY, -- Unique identifier for each omniclass type
+    id UUID NOT NULL -- Unique identifier for each component family
+);
+
+CREATE TABLE component_type (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each component type
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the component type was created
+    name TEXT NOT NULL, -- Component type name
+    description TEXT, -- Component type description
+    spec_section TEXT, -- Specification section
+    manufacturer_contact_id UUID, -- ID of the manufacturer contact
+    manufacturer_id UUID, -- ID of the manufacturer
+    model_number TEXT, -- Model number
+    model_reference TEXT, -- Model reference
+    warranty_guarantor_parts_id UUID, -- ID of the warranty guarantor for parts
+    warranty_duration_parts DOUBLE PRECISION, -- Warranty duration for parts
+    warranty_guarantor_labor_id UUID, -- ID of the warranty guarantor for labor
+    warranty_duration_labor DOUBLE PRECISION, -- Warranty duration for labor
+    warranty_description TEXT, -- Warranty description
+    replacement_cost DOUBLE PRECISION, -- Replacement cost
+    expected_life DOUBLE PRECISION, -- Expected life of the component
+    shape TEXT, -- Component shape
+    size TEXT, -- Component size
+    color TEXT, -- Component color
+    finish TEXT, -- Component finish
+    grade TEXT, -- Component grade
+    material TEXT, -- Component material
+    constituents TEXT, -- Component constituents
+    features TEXT, -- Component features
+    nominal_length DOUBLE PRECISION, -- Nominal length
+    nominal_width DOUBLE PRECISION, -- Nominal width
+    nominal_height DOUBLE PRECISION, -- Nominal height
+    accessibility_performance TEXT, -- Accessibility performance
+    code_performance TEXT, -- Code performance
+    sustainability_performance TEXT, -- Sustainability performance
+    supplier_contact_id UUID, -- ID of the supplier contact
+    supplier_id UUID, -- ID of the supplier
+    component_family_id UUID, -- ID of the associated component family
+    custom_properties JSONB, -- Custom properties stored as JSON
+    model_facility_id UUID, -- ID of the model facility
+    llm_data JSONB -- LLM data stored as JSON
+);
+
+CREATE TABLE contact (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each contact
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the contact was created
+    first_name TEXT, -- First name
+    middle_name TEXT, -- Middle name
+    last_name TEXT, -- Last name
+    email TEXT, -- Email address
+    phone TEXT, -- Phone number
+    address_id UUID, -- ID of the associated address
+    company_id INTEGER PRIMARY KEY, -- ID of the associated company
+    organisation_id UUID NOT NULL -- ID of the associated organisation
+);
+
+CREATE TABLE floor (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each floor
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the floor was created
+    name TEXT NOT NULL, -- Floor name
+    description TEXT, -- Floor description
+    gross_area DOUBLE PRECISION, -- Gross area of the floor
+    net_area DOUBLE PRECISION, -- Net area of the floor
+    elevation DOUBLE PRECISION, -- Elevation of the floor
+    height DOUBLE PRECISION, -- Height of the floor
+    model_facility_id UUID NOT NULL -- ID of the associated model facility
+);
+
+CREATE TABLE job_preventive (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each preventive job
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the job was created
+    created_by UUID, -- ID of the user who created the job
+    name TEXT NOT NULL, -- Job name
+    description TEXT, -- Job description
+    duration REAL, -- Job duration
+    model_facility_id UUID, -- ID of the associated model facility
+    assigned_to UUID, -- ID of the user assigned to the job
+    tasks JSONB, -- Job tasks stored as JSON
+    model_equipment_id UUID, -- ID of the associated model equipment
+    end_time TIME WITH TIME ZONE, -- End time of the job
+    priority VARCHAR(50) CHECK (priority IN ('low', 'medium', 'high', 'critical')), -- Job priority
+    scheduled_on DATE, -- Scheduled date for the job
+    start_time TIME WITH TIME ZONE, -- Start time of the job
+    status VARCHAR(50) CHECK (status IN ('open', 'assigned', 'scheduled', 'ongoing', 'completed', 'closed')), -- Job status
+    component_type_id UUID, -- ID of the associated component type
+    object_type_id UUID, -- ID of the associated object type
+    space_type_id UUID -- ID of the associated space type
+);
+
+CREATE TABLE job_preventive_policy (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each preventive job policy
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL, -- Timestamp when the policy was created
+    start_date DATE NOT NULL, -- Start date for the policy
+    frequency REAL NOT NULL, -- Frequency of the policy
+    start_time TIME WITH TIME ZONE, -- Start time of the policy
+    end_time TIME WITH TIME ZONE, -- End time of the policy
+    description TEXT, -- Policy description
+    duration REAL, -- Policy duration
+    generate_before NUMERIC DEFAULT '7'::NUMERIC NOT NULL, -- Days before the policy should be generated
+    name TEXT NOT NULL, -- Policy name
+    priority VARCHAR(50) CHECK (priority IN ('low', 'medium', 'high', 'critical')), -- Policy priority
+    tasks JSONB, -- Policy tasks stored as JSON
+    created_by UUID, -- ID of the user who created the policy
+    model_facility_id UUID, -- ID of the associated model facility
+    assigned_to UUID, -- ID of the user assigned to the policy
+    is_active BOOLEAN DEFAULT TRUE NOT NULL, -- Flag indicating if the policy is active
+    model_equipment_id UUID, -- ID of the associated model equipment
+    component_type_id UUID, -- ID of the associated component type
+    object_type_id UUID, -- ID of the associated object type
+    space_type_id UUID -- ID of the associated space type
+);
+
+CREATE TABLE job_reactive (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each reactive job
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the job was created
+    created_by UUID, -- ID of the user who created the job
+    name TEXT NOT NULL, -- Job name
+    description TEXT, -- Job description
+    duration REAL, -- Job duration
+    status VARCHAR(50) CHECK (status IN ('open', 'assigned', 'scheduled', 'ongoing', 'completed', 'closed')), -- Job status
+    scheduled_on DATE, -- Scheduled date for the job
+    component_id UUID, -- ID of the associated component
+    space_id UUID, -- ID of the associated space
+    model_facility_id UUID, -- ID of the associated model facility
+    assigned_to UUID, -- ID of the user assigned to the job
+    model_equipment_id UUID, -- ID of the associated model equipment
+    object_id UUID, -- ID of the associated object
+    end_time TIME WITH TIME ZONE, -- End time of the job
+    start_time TIME WITH TIME ZONE, -- Start time of the job
+    priority job_priority DEFAULT 'low'::job_priority NOT NULL -- Job priority
+);
+
+CREATE TABLE model_equipment (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each equipment model
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the equipment model was created
+    name TEXT NOT NULL, -- Equipment model name
+    description TEXT, -- Equipment model description
+    viewable_id TEXT, -- Viewable ID
+    model_name TEXT NOT NULL, -- Equipment model name
+    is_pending BOOLEAN DEFAULT TRUE NOT NULL, -- Flag indicating if the equipment model is pending
+    thumbnail_url TEXT, -- URL for the equipment model thumbnail
+    organisation_id UUID, -- ID of the associated organisation
+    custom_properties JSONB, -- Custom properties stored as JSON
+    modules MODULES_EQUIPMENT[], -- Array of equipment modules
+    address_id UUID -- ID of the associated address
+);
+
+CREATE TABLE model_facility (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each facility model
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the facility model was created
+    name TEXT NOT NULL, -- Facility model name
+    description TEXT, -- Facility model description
+    address_id INTEGER PRIMARY KEY, -- ID of the associated address
+    project_name TEXT, -- Project name
+    project_description TEXT, -- Project description
+    site_name TEXT, -- Site name
+    site_description TEXT, -- Site description
+    viewable_id TEXT, -- Viewable ID
+    model_name TEXT, -- Model name
+    is_pending BOOLEAN DEFAULT TRUE NOT NULL, -- Flag indicating if the facility model is pending
+    thumbnail_url TEXT, -- URL for the facility model thumbnail
+    organisation_id UUID, -- ID of the associated organisation
+    custom_properties JSONB, -- Custom properties stored as JSON
+    modules MODULES_FACILITY[] -- Array of facility modules
+);
+
+CREATE TABLE object (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each object
+    name TEXT NOT NULL, -- Object name
+    description TEXT, -- Object description
+    dbid NUMERIC NOT NULL, -- Database ID
+    custom_properties JSONB, -- Custom properties stored as JSON
+    model_equipment_id UUID, -- ID of the associated equipment model
+    object_type_id UUID -- ID of the associated object type
+);
+
+CREATE TABLE object_type (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the object type was created
+    id INTEGER PRIMARY KEY, -- Unique identifier for each object type
+    name TEXT NOT NULL, -- Object type name
+    theming_color TEXT, -- Theming color
+    model_equipment_id UUID -- ID of the associated equipment model
+);
+
+CREATE TABLE omniclass_space (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each omniclass space
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the omniclass space was created
+    name TEXT NOT NULL, -- Omniclass space name
+    description TEXT, -- Omniclass space description
+    theming_color TEXT, -- Theming color
+    omniclass_table_number TEXT NOT NULL -- Omniclass table number
+);
+
+CREATE TABLE omniclass_system (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each omniclass system
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the omniclass system was created
+    name TEXT NOT NULL, -- Omniclass system name
+    description TEXT, -- Omniclass system description
+    theming_color TEXT, -- Theming color
+    omniclass_table_number TEXT NOT NULL -- Omniclass table number
+);
+
+CREATE TABLE omniclass_type (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each omniclass type
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the omniclass type was created
+    name TEXT NOT NULL, -- Omniclass type name
+    description TEXT, -- Omniclass type description
+    omniclass_table_number TEXT NOT NULL -- Omniclass table number
+);
+
+CREATE TABLE organisation (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each organisation
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the organisation was created
+    name TEXT NOT NULL, -- Organisation name
+    description TEXT, -- Organisation description
+    custom_properties JSONB -- Custom properties stored as JSON
+);
+
+CREATE TABLE resource (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each resource
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the resource was created
+    name TEXT NOT NULL, -- Resource name
+    description TEXT, -- Resource description
+    total_quantity NUMERIC, -- Total quantity of the resource
+    model_facility_id UUID, -- ID of the associated facility model
+    model_equipment_id UUID -- ID of the associated equipment model
+);
+
+CREATE TABLE sensor (
+    id TEXT NOT NULL, -- Sensor ID
+    component_id INTEGER PRIMARY KEY, -- Unique identifier for each sensor component
+    name TEXT NOT NULL, -- Sensor name
+    description TEXT, -- Sensor description
+    manufacturer TEXT, -- Sensor manufacturer
+    installation_date TIMESTAMP WITH TIME ZONE, -- Sensor installation date
+    custom_properties JSONB, -- Custom properties stored as JSON
+    model_facility_id UUID, -- ID of the associated facility model
+    template_id TEXT, -- Template ID
+    space_id UUID, -- ID of the associated space
+    service TEXT -- Sensor service
+);
+
+CREATE TABLE sensor_type (
+    id BIGINT NOT NULL, -- Unique identifier for each sensor type
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the sensor type was created
+    name TEXT NOT NULL, -- Sensor type name
+    max_value REAL NOT NULL, -- Maximum value
+    min_value REAL NOT NULL, -- Minimum value
+    unit TEXT -- Unit of measurement
+);
+
+CREATE TABLE space (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each space
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the space was created
+    name TEXT NOT NULL, -- Space name
+    description TEXT, -- Space description
+    usable_height DOUBLE PRECISION, -- Usable height of the space
+    gross_area DOUBLE PRECISION, -- Gross area of the space
+    net_area DOUBLE PRECISION, -- Net area of the space
+    floor_material TEXT, -- Floor material
+    floor_color TEXT, -- Floor color
+    wall_color_north TEXT, -- Wall color (North)
+    wall_color_south TEXT, -- Wall color (South)
+    wall_color_east TEXT, -- Wall color (East)
+    wall_color_west TEXT, -- Wall color (West)
+    wall_material_north TEXT, -- Wall material (North)
+    wall_material_south TEXT, -- Wall material (South)
+    wall_material_east TEXT, -- Wall material (East)
+    wall_material_west TEXT, -- Wall material (West)
+    ceiling_material TEXT, -- Ceiling material
+    ceiling_color TEXT, -- Ceiling color
+    ceiling_height DOUBLE PRECISION, -- Ceiling height
+    space_notes TEXT, -- Space notes
+    floor_id UUID, -- ID of the associated floor
+    dbid NUMERIC NOT NULL, -- Database ID
+    space_type_id UUID, -- ID of the associated space type
+    custom_properties JSONB, -- Custom properties stored as JSON
+    raw_name TEXT NOT NULL, -- Raw name of the space
+    tag TEXT -- Space tag
+);
+
+CREATE TABLE space_type (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each space type
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the space type was created
+    omniclass_space_id INTEGER PRIMARY KEY, -- ID of the associated omniclass space
+    name TEXT -- Space type name
+);
+
+CREATE TABLE spare (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each spare
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL, -- Timestamp when the spare was created
+    name TEXT NOT NULL, -- Spare name
+    description TEXT, -- Spare description
+    location TEXT, -- Spare location
+    catalog TEXT, -- Spare catalog
+    unit_price TEXT, -- Spare unit price
+    material_cost TEXT, -- Spare material cost
+    shipping_cost TEXT, -- Spare shipping cost
+    supplier_contact_id UUID, -- ID of the supplier contact
+    supplier_part_number NUMERIC, -- Supplier part number
+    model_facility_id UUID, -- ID of the associated facility model
+    model_equipment_id UUID, -- ID of the associated equipment model
+    total_quantity REAL, -- Total quantity of the spare
+    cutoff_quantity REAL -- Cutoff quantity of the spare
+);
+
+CREATE TABLE system (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the system was created
+    omniclass_system_id INTEGER PRIMARY KEY, -- ID of the associated omniclass system
+    id UUID NOT NULL -- Unique identifier for each system
+);
+
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each user
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the user was created
+    first_name TEXT, -- User first name
+    middle_name TEXT, -- User middle name
+    last_name TEXT, -- User last name
+    email TEXT, -- User email
+    phone TEXT, -- User phone
+    organisation_id UUID, -- ID of the associated organisation
+    user_type VARCHAR(50) CHECK (user_type IN ('administrator', 'custodian', 'facility_manager', 'guest', 'technician')) -- User type
+);
+
+CREATE TABLE view (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each view
+    name TEXT NOT NULL, -- View name
+    model_facility_id INTEGER PRIMARY KEY, -- ID of the associated facility model
+    is_default BOOLEAN DEFAULT FALSE NOT NULL, -- Flag indicating if the view is default
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL -- Timestamp when the view was created
+);
+
+
+CREATE TABLE xref_cluster_object (
+    cluster_id INTEGER PRIMARY KEY, -- ID of the cluster
+    object_id INTEGER PRIMARY KEY, -- ID of the object
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL -- Timestamp when the record was created
+);
+
+CREATE TABLE xref_componentType_spare (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the record was created
+    component_type_id INTEGER PRIMARY KEY, -- ID of the component type
+    spare_id UUID NOT NULL -- ID of the spare
+);
+
+CREATE TABLE xref_component_jobPreventive (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL, -- Timestamp when the record was created
+    component_id INTEGER PRIMARY KEY, -- ID of the component
+    job_preventive_id UUID NOT NULL -- ID of the preventive job
+);
+
+CREATE TABLE xref_component_jobPreventivePolicy (
+    component_id INTEGER PRIMARY KEY, -- ID of the component
+    job_preventive_policy_id INTEGER PRIMARY KEY, -- ID of the preventive policy
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- Timestamp when the record was created
+);
+
+CREATE TABLE xref_component_view (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the record was created
+    component_id INTEGER PRIMARY KEY, -- ID of the component
+    view_id UUID NOT NULL -- ID of the view
+);
+
+CREATE TABLE xref_jobPreventivePolicy_object (
+    job_preventive_policy_id INTEGER PRIMARY KEY, -- ID of the preventive policy
+    object_id INTEGER PRIMARY KEY, -- ID of the object
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- Timestamp when the record was created
+);
+
+CREATE TABLE xref_jobPreventivePolicy_space (
+    space_id INTEGER PRIMARY KEY, -- ID of the space
+    job_preventive_policy_id INTEGER PRIMARY KEY, -- ID of the preventive policy
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- Timestamp when the record was created
+);
+
+CREATE TABLE xref_jobPreventive_object (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL, -- Timestamp when the record was created
+    object_id INTEGER PRIMARY KEY, -- ID of the object
+    job_preventive_id UUID NOT NULL -- ID of the preventive job
+);
+
+CREATE TABLE xref_jobPreventive_space (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL, -- Timestamp when the record was created
+    job_preventive_id INTEGER PRIMARY KEY, -- ID of the preventive job
+    space_id UUID NOT NULL -- ID of the space
+);
+
+CREATE TABLE xref_jobReactive_spare (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the record was created
+    job_reactive_id INTEGER PRIMARY KEY, -- ID of the reactive job
+    spare_id UUID NOT NULL -- ID of the spare
+);
+
+CREATE TABLE xref_modelEquipment_user (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the record was created
+    model_equipment_id INTEGER PRIMARY KEY, -- ID of the model equipment
+    user_id UUID NOT NULL -- ID of the user
+);
+
+CREATE TABLE xref_modelFacility_user (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the record was created
+    model_facility_id INTEGER PRIMARY KEY, -- ID of the model facility
+    user_id UUID NOT NULL -- ID of the user
+);
+
+CREATE TABLE xref_objectType_spare (
+    object_type_id INTEGER PRIMARY KEY, -- ID of the object type
+    spare_id INTEGER PRIMARY KEY, -- ID of the spare
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- Timestamp when the record was created
+);
+
+CREATE TABLE xref_resource_jobReactive (
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(), -- Timestamp when the record was created
+    resource_id INTEGER PRIMARY KEY, -- ID of the resource
+    job_reactive_id UUID NOT NULL -- ID of the reactive job
+);
+
+CREATE TABLE xref_sensor_sensorType (
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- Timestamp when the record was created
+    sensor_id TEXT NOT NULL, -- ID of the sensor
+    sensor_type_id BIGINT NOT NULL -- ID of the sensor type
+);
+
+CREATE TABLE xref_space_zone (
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL, -- Timestamp when the record was created
+    zone_id INTEGER PRIMARY KEY, -- ID of the zone
+    space_id UUID NOT NULL -- ID of the space
+);
+
+CREATE TABLE zone (
+    id INTEGER PRIMARY KEY, -- Unique identifier for each zone
+    name TEXT, -- Zone name
+    description TEXT, -- Zone description
+    gross_area NUMERIC, -- Gross area of the zone
+    net_area NUMERIC, -- Net area of the zone
+    model_facility_id INTEGER PRIMARY KEY, -- ID of the associated model facility
+    is_default BOOLEAN DEFAULT FALSE NOT NULL, -- Flag indicating if the zone is default
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL -- Timestamp when the zone was created
+);
+
+
+-- cluster.model_equipment_id can be joined with model_equipment.id
+-- company.address_id can be joined with address.id
+-- company.organisation_id can be joined with organisation.id
+-- component.component_type_id can be joined with component_type.id
+-- component_family.omniclass_type_id can be joined with omniclass_type.id
+-- component_family.system_id can be joined with system.id
+-- component.model_equipment_id can be joined with model_equipment.id
+-- component.space_id can be joined with space.id
+-- component.supplier_contact_id can be joined with contact.id
+-- component_type.component_family_id can be joined with component_family.id
+-- component_type.manufacturer_contact_id can be joined with contact.id
+-- component_type.model_facility_id can be joined with model_facility.id
+-- component_type.supplier_contact_id can be joined with contact.id
+-- component_type.supplier_id can be joined with contact.id
+-- component_type.warranty_guarantor_labor_id can be joined with contact.id
+-- component_type.warranty_guarantor_parts_id can be joined with contact.id
+-- contact.address_id can be joined with address.id
+-- contact.company_id can be joined with company.id
+-- contact.organisation_id can be joined with organisation.id
+-- floor.model_facility_id can be joined with model_facility.id
+-- job_preventive.assigned_to can be joined with user.id
+-- job_preventive.component_type_id can be joined with component_type.id
+-- job_preventive.created_by can be joined with user.id
+-- job_preventive.model_equipment_id can be joined with model_equipment.id
+-- job_preventive.model_facility_id can be joined with model_facility.id
+-- job_preventive.object_type_id can be joined with object_type.id
+-- job_preventive_policy.assigned_to can be joined with user.id
+-- job_preventive_policy.component_type_id can be joined with component_type.id
+-- job_preventive_policy.created_by can be joined with user.id
+-- job_preventive_policy.model_equipment_id can be joined with model_equipment.id
+-- job_preventive_policy.model_facility_id can be joined with model_facility.id
+-- job_preventive_policy.object_type_id can be joined with object_type.id
+-- job_preventive_policy.space_type_id can be joined with space_type.id
+-- job_preventive.space_type_id can be joined with space_type.id
+-- job_reactive.assigned_to can be joined with user.id
+-- job_reactive.component_id can be joined with component.id
+-- job_reactive.created_by can be joined with user.id
+-- job_reactive.model_equipment_id can be joined with model_equipment.id
+-- job_reactive.model_facility_id can be joined with model_facility.id
+-- job_reactive.object_id can be joined with object.id
+-- job_reactive.space_id can be joined with space.id
+-- job_reactive.id can be joined with xref_jobReactive_spare.job_reactive_id
+-- spare.id can be joined with xref_jobReactive_spare.spare_id
+-- model_equipment.address_id can be joined with address.id
+-- model_equipment.organisation_id can be joined with organisation.id
+-- model_facility.address_id can be joined with address.id
+-- model_facility.organisation_id can be joined with organisation.id
+-- object.model_equipment_id can be joined with model_equipment.id
+-- object.object_type_id can be joined with object_type.id
+-- object_type.model_equipment_id can be joined with model_equipment.id
+-- resource.model_equipment_id can be joined with model_equipment.id
+-- resource.model_facility_id can be joined with model_facility.id
+-- sensor.component_id can be joined with component.id
+-- sensor.model_facility_id can be joined with model_facility.id
+-- sensor.space_id can be joined with space.id
+-- space.floor_id can be joined with floor.id
+-- space.space_type_id can be joined with space_type.id
+-- space_type.omniclass_space_id can be joined with omniclass_space.id
+-- spare.model_equipment_id can be joined with model_equipment.id
+-- spare.model_facility_id can be joined with model_facility.id
+-- spare.supplier_contact_id can be joined with contact.id
+-- system.omniclass_system_id can be joined with omniclass_system.id
+-- user.id can be joined with auth.users.id
+-- user.organisation_id can be joined with organisation.id
+-- view.model_facility_id can be joined with model_facility.id
+-- xref_cluster_object.cluster_id can be joined with cluster.id
+-- xref_cluster_object.object_id can be joined with object.id
+-- xref_componentType_spare.component_type_id can be joined with component_type.id
+-- xref_componentType_spare.spare_id can be joined with spare.id
+-- xref_component_jobPreventivePolicy.component_id can be joined with component.id
+-- xref_component_jobPreventivePolicy.job_preventive_policy_id can be joined with job_preventive_policy.id
+-- xref_component_jobPreventive.component_id can be joined with component.id
+-- xref_component_jobPreventive.job_preventive_id can be joined with job_preventive.id
+-- xref_component_view.component_id can be joined with component.id
+-- xref_component_view.view_id can be joined with view.id
+-- xref_modelFacility_user.model_facility_id can be joined with model_facility.id
+-- xref_modelFacility_user.user_id can be joined with user.id
+-- xref_jobPreventivePolicy_object.job_preventive_policy_id can be joined with job_preventive_policy.id
+-- xref_jobPreventivePolicy_object.object_id can be joined with object.id
+-- xref_jobPreventivePolicy_space.job_preventive_policy_id can be joined with job_preventive_policy.id
+-- xref_jobPreventivePolicy_space.space_id can be joined with space.id
+-- xref_jobPreventive_space.job_preventive_id can be joined with job_preventive.id
+-- xref_jobPreventive_space.space_id can be joined with space.id
+-- xref_jobReactive_spare.job_reactive_id can be joined with job_reactive.id
+-- xref_jobReactive_spare.spare_id can be joined with spare.id
+-- xref_modelEquipment_user.model_equipment_id can be joined with model_equipment.id
+-- xref_modelEquipment_user.user_id can be joined with user.id
+-- xref_objectType_spare.object_type_id can be joined with object_type.id
+-- xref_objectType_spare.spare_id can be joined with spare.id
+-- xref_jobPreventive_object.job_preventive_id can be joined with job_preventive.id
+-- xref_jobPreventive_object.object_id can be joined with object.id
+-- xref_resource_jobReactive.job_reactive_id can be joined with job_reactive.id
+-- xref_resource_job_resource_id can be joined with resource.id
+-- xref_sensor_sensorType.sensor_id can be joined with sensor.id
+-- xref_sensor_sensorType.sensor_type_id can be joined with sensor_type.id
+-- xref_space_zone.space_id can be joined with space.id
+-- xref_space_zone.zone_id can be joined with zone.id
+-- zone.model_facility_id can be joined with model_facility.id
